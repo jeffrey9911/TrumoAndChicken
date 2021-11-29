@@ -37,10 +37,11 @@ public class PlayerMovements : MonoBehaviour
         {
             veloY = 0.0f;
             
-            transform.rotation = Quaternion.Euler(0, Camera.main.transform.rotation.eulerAngles.y + rotAng, 0);
+            
 
             if(isPressingWASD())
             {
+                transform.rotation = Quaternion.Euler(0, Camera.main.transform.rotation.eulerAngles.y + rotAng, 0);
                 _animator.SetInteger("AnimState", 1);
             }
             else
