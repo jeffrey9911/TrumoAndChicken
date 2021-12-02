@@ -8,6 +8,7 @@ public class PlayerMovements : MonoBehaviour
     public Animator _animator;
     public CharacterController _cController;
 
+
     public float dtMultiplier = 1.0f;
     public float _jumpForce = 5f;
 
@@ -15,6 +16,8 @@ public class PlayerMovements : MonoBehaviour
     private int rotAng;
     private RaycastHit rayCout;
     private float veloY;
+
+    private float jumpCD;
 
     // Start is called before the first frame update
     void Start()
@@ -31,32 +34,43 @@ public class PlayerMovements : MonoBehaviour
     private void Update()
     {
         isCollidingVertically(false);
-        getKeyRotation(true);
+        getKeyRotation(false);
+        countingDown();
 
         if(isCollidingVertically(false) || _cController.isGrounded)
         {
-            veloY = 0.0f;
+            //veloY = 0.0f;
             
             
 
-            if(isPressingWASD())
+            if(isPressingWASD() && !Input.GetKey(KeyCode.Space))
             {
                 transform.rotation = Quaternion.Euler(0, Camera.main.transform.rotation.eulerAngles.y + rotAng, 0);
-                _animator.SetInteger("AnimState", 1);
+                
+                _animator.SetBool("isRun", true);
             }
             else
             {
-                _animator.SetInteger("AnimState", -1);
+                
+                _animator.SetBool("isRun", false);
             }
 
-            if (Input.GetKey(KeyCode.Space))
+            if(jumpCD <= 0)
             {
-                veloY += _jumpForce;
+                if (Input.GetKey(KeyCode.Space))
+                {
+                    
+                    _animator.SetTrigger("isJumpTrig");
+                    Debug.Log("JUMP");
+                    veloY += _jumpForce;
+                    
+                    jumpCD = 2;
+                }
             }
-
         }
-        
         _cController.Move(new Vector3(0f, veloY, 0f) * Time.deltaTime * dtMultiplier);
+        
+
     }
 
     private void getKeyRotation(bool isDebugging)
@@ -98,7 +112,7 @@ public class PlayerMovements : MonoBehaviour
 
         if (rayCout.distance <= 0.1)
         {
-            veloY = 0f;
+            
             return true;
         }
 
@@ -116,5 +130,14 @@ public class PlayerMovements : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    private void countingDown()
+    {
+        if(jumpCD > 0)
+            jumpCD -= Time.deltaTime;
+
+        if(veloY > 0)
+            veloY += -9.8f * Time.deltaTime * dtMultiplier;
     }
 }
