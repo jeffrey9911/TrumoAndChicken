@@ -15,14 +15,18 @@ public class ChickenMovement : MonoBehaviour
     private Vector3 gravVelo;
     private RaycastHit rayCout;
 
-    private float _segmentTimer = 0;
-    private float _segmentTravelTime = 1.0f;
-    private int _segmentIndex = 0;
+    public bool isUnderAttack = false;
 
-    public List<Node> nodes;
+    public float fleeTime = 0;
 
-    private Vector3 calculatedObjTransform;
+    
 
+    public enum behaviour
+    {
+        Flee = 0,
+        Arival = 1
+    }
+    public behaviour _behav;
     // Start is called before the first frame update
     void Start()
     {
@@ -32,11 +36,23 @@ public class ChickenMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        fleeWithAnim();
+        switch(_behav)
+        {
+            case behaviour.Flee:
+                fleeWithAnim(3.0f);
+                break;
+            case behaviour.Arival:
+                ArrivalBehaviour();
+                break;
+            default:
+                break;
+        }
+
+
+        
         actGravity(false);
 
-        _movementVector = _movementVector * _desiredVelocity * Time.deltaTime;
-        //transform.position += _movementVector;
+        _movementVector = _movementVector * _desiredVelocity * Time.deltaTime * 0.2f ;
         _characterController.Move(_movementVector + gravVelo);
     }
 
@@ -56,16 +72,15 @@ public class ChickenMovement : MonoBehaviour
         return false;
     }
 
-    private void fleeWithAnim()
+    private void fleeWithAnim(float _escapeArea)
     {
-        float _escapeArea = 3.0f;
-
-        _movementVector = (_target.transform.position - transform.position).normalized * _maxVelocity * -1.0f;
+        
         float _dist = Vector3.Distance(_target.transform.position, transform.position);
 
 
-        if ((_escapeArea - _dist) >= 0)
+        if ((_escapeArea - _dist) > 0)
         {
+            _movementVector = (_target.transform.position - transform.position).normalized * _maxVelocity * -1.0f;
             _animator.SetBool("Turn Head", false);
             _animator.SetBool("Run", true);
 
@@ -79,6 +94,7 @@ public class ChickenMovement : MonoBehaviour
         }
         else
         {
+            _movementVector = Vector3.zero;
             _animator.SetBool("Run", false);
             _animator.SetBool("Turn Head", true);
         }
@@ -86,5 +102,40 @@ public class ChickenMovement : MonoBehaviour
         _movementVector.y = 0;
     }
 
+    private void ArrivalBehaviour()
+    {
+        
+        float _dist = Vector3.Distance(_target.transform.position, transform.position);
+
+        if(fleeTime <= 0)
+        {
+            if (_dist >= 1.5)
+            {
+                _movementVector = (_target.transform.position - transform.position).normalized * _maxVelocity;
+                _animator.SetBool("Turn Head", false);
+                _animator.SetBool("Run", true);
+
+                _desiredVelocity = Vector3.Distance(_target.transform.position, transform.position) * 0.5f;
+
+                Vector3 dir = _target.transform.position - transform.position;
+                dir.y = 0;
+
+                transform.forward = dir;
+            }
+            else
+            {
+                _movementVector = Vector3.zero;
+                _animator.SetBool("Run", false);
+                _animator.SetBool("Turn Head", true);
+            }
+        }
+        else
+        {
+            fleeTime -= Time.deltaTime;
+            fleeWithAnim(5.0f);
+        }
+        
+        _movementVector.y = 0;
+    }
 
 }

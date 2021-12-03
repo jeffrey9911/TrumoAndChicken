@@ -8,6 +8,9 @@ public class PlayerMovements : MonoBehaviour
     public Animator _animator;
     public CharacterController _cController;
 
+    public Transform _model;
+    private bool isTouchingModel = false;
+    private Vector3 pushDistin;
 
     public float dtMultiplier = 1.0f;
     public float _jumpForce = 5f;
@@ -19,10 +22,13 @@ public class PlayerMovements : MonoBehaviour
 
     private float jumpCD;
 
+    public List<Node> nodes;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        pushDistin = _model.transform.position;
+        nodes = new List<Node>(FindObjectsOfType<Node>());
     }
 
     private void FixedUpdate()
@@ -42,7 +48,6 @@ public class PlayerMovements : MonoBehaviour
             //veloY = 0.0f;
             
             
-
             if(isPressingWASD() && !Input.GetKey(KeyCode.Space))
             {
                 transform.rotation = Quaternion.Euler(0, Camera.main.transform.rotation.eulerAngles.y + rotAng, 0);
@@ -68,6 +73,19 @@ public class PlayerMovements : MonoBehaviour
                 }
             }
         }
+
+        if(Input.GetMouseButtonDown(0)) // Left
+        {
+            _animator.SetTrigger("isAttack");
+            attackLerp();
+        }
+        if (Input.GetMouseButtonDown(1)) // Left
+        {
+            _animator.SetTrigger("isPush");
+            pushLerp();
+        }
+
+        _model.transform.position = LERP(_model.transform.position, pushDistin, Time.deltaTime);
         _cController.Move(new Vector3(0f, veloY, 0f) * Time.deltaTime * dtMultiplier);
         
 
@@ -140,4 +158,32 @@ public class PlayerMovements : MonoBehaviour
         if(veloY > 0)
             veloY += -9.8f * Time.deltaTime * dtMultiplier;
     }
+
+    private void pushLerp()
+    {
+        Vector3 _dist = _model.transform.position - transform.position;
+        if((_dist.z <= 2.3 && _dist.z >= -2.3) && (_dist.x <= 1.8 && _dist.x >= -1.8))
+        {
+            Vector3 pushVec = new Vector3(_dist.x, 0.0f, _dist.z).normalized;
+            pushDistin = _model.transform.position + pushVec * 3.0f;
+        }
+    }
+
+    private void attackLerp()
+    {
+        for(int i = 0; i < nodes.Count; i ++)
+        {
+            if(Vector3.Distance(transform.position, nodes[i].transform.position) <= 1.6)
+            {
+                nodes[i].GetComponent<ChickenMovement>().fleeTime = 3.0f;
+            }
+        }
+    }
+
+    private Vector3 LERP(Vector3 p0, Vector3 p1, float t)
+    {
+        return (1.0f - t) * p0 + t * p1;
+    }
+
+    
 }
