@@ -43,9 +43,11 @@ public class PlayerMovements : MonoBehaviour
         getKeyRotation(false);
         countingDown();
 
+        Debug.Log(veloY);
+
         if(isCollidingVertically(false) || _cController.isGrounded)
         {
-            //veloY = 0.0f;
+            
             
             
             if(isPressingWASD() && !Input.GetKey(KeyCode.Space))
@@ -68,7 +70,7 @@ public class PlayerMovements : MonoBehaviour
                     _animator.SetTrigger("isJumpTrig");
                     Debug.Log("JUMP");
                     veloY += _jumpForce;
-                    
+
                     jumpCD = 2;
                 }
             }
@@ -77,9 +79,9 @@ public class PlayerMovements : MonoBehaviour
         if(Input.GetMouseButtonDown(0)) // Left
         {
             _animator.SetTrigger("isAttack");
-            attackLerp();
+            attackFlee();
         }
-        if (Input.GetMouseButtonDown(1)) // Left
+        if (Input.GetMouseButtonDown(1))
         {
             _animator.SetTrigger("isPush");
             pushLerp();
@@ -130,7 +132,6 @@ public class PlayerMovements : MonoBehaviour
 
         if (rayCout.distance <= 0.1)
         {
-            
             return true;
         }
 
@@ -169,7 +170,7 @@ public class PlayerMovements : MonoBehaviour
         }
     }
 
-    private void attackLerp()
+    private void attackFlee()
     {
         for(int i = 0; i < nodes.Count; i ++)
         {
